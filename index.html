@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Downloader Saya</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#ff4757">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0d0d1a; font-family:'Segoe UI',sans-serif; color:white; padding:20px; min-height:100vh; }
+    h1 { text-align:center; color:#ff4757; font-size:1.5rem; margin-bottom:8px; }
+    .subtitle { text-align:center; color:#888; font-size:0.85rem; margin-bottom:16px; }
+    .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .card { background:#1a1a2e; border-radius:16px; padding:20px; margin-bottom:16px; }
+    label { display:block; font-size:0.85rem; color:#aaa; margin-bottom:6px; }
+    input, select { width:100%; padding:12px; border-radius:10px; border:2px solid #ff4757; background:#0d0d1a; color:white; font-size:1rem; margin-bottom:12px; }
+    .btn { width:100%; padding:14px; border:none; border-radius:10px; font-size:1rem; font-weight:bold; cursor:pointer; margin-bottom:8px; }
+    .btn-primary { background:#ff4757; color:white; }
+    .btn-secondary { background:transparent; border:2px solid #ff4757; color:#ff4757; }
+    .preview { display:none; background:#0d0d1a; border-radius:12px; overflow:hidden; margin-top:16px; }
+    .preview img { width:100%; display:block; }
+    .preview-info { padding:12px; }
+    .preview-info h3 { font-size:0.95rem; margin-bottom:4px; }
+    .preview-info p { font-size:0.8rem; color:#888; }
+    .platform-badge { display:inline-block; background:#ff4757; color:white; font-size:0.7rem; padding:2px 8px; border-radius:20px; margin-bottom:8px; }
+    #status { text-align:center; padding:10px; border-radius:8px; margin-top:8px; font-size:0.9rem; display:none; }
+    .status-loading { background:#2a2a40; color:#aaa; }
+    .status-success { background:#1a3a1a; color:#4caf50; }
+    .status-error { background:#3a1a1a; color:#ff4757; }
+    .progress-container { display:none; margin-top:12px; background:#0d0d1a; border-radius:10px; padding:12px; }
+    .progress-bar-bg { background:#2a2a40; border-radius:20px; height:12px; overflow:hidden; margin-bottom:8px; }
+    .progress-bar-fill { height:100%; background:linear-gradient(90deg,#ff4757,#ff6b81); border-radius:20px; width:0%; transition:width 0.3s ease; }
+    .progress-info { display:flex; justify-content:space-between; font-size:0.75rem; color:#aaa; }
+    .platform-list { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+    .platform-item { background:#0d0d1a; border-radius:8px; padding:8px; text-align:center; font-size:0.75rem; color:#888; }
+    .platform-item span { display:block; font-size:1.2rem; margin-bottom:2px; }
+    .result-item { display:flex; gap:10px; padding:10px; background:#0d0d1a; border-radius:10px; margin-bottom:8px; cursor:pointer; border:2px solid transparent; transition:border 0.2s; }
+    .result-item:hover { border:2px solid #ff4757; }
+    .result-item img { width:80px; height:50px; object-fit:cover; border-radius:6px; }
+    .result-info { flex:1; }
+    .result-info h4 { font-size:0.85rem; margin-bottom:4px; }
+    .result-info p { font-size:0.75rem; color:#888; }
+    .platform-yt { color:#ff4757; }
+    .platform-sc { color:#ff6b00; }
+    .chart-row { margin-bottom:8px; }
+    .chart-label { font-size:0.75rem; color:#aaa; margin-bottom:3px; }
+    .chart-bar-bg { background:#2a2a40; border-radius:20px; height:10px; }
+    .chart-bar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg,#ff4757,#ff6b81); transition:width 0.5s ease; }
+    .chart-value { font-size:0.7rem; color:#ff4757; margin-top:2px; }
+    .note-item { display:flex; align-items:center; gap:10px; padding:10px; background:#0d0d1a; border-radius:10px; margin-bottom:8px; }
+    .note-checkbox { width:20px; height:20px; border-radius:50%; border:2px solid #ff4757; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+    .note-checkbox.checked { background:#ff4757; }
+    .note-text { flex:1; font-size:0.9rem; }
+    .note-text.done { text-decoration:line-through; color:#666; }
+    .note-delete { color:#ff4757; cursor:pointer; font-size:1.1rem; flex-shrink:0; }
+    .web-result { padding:10px; background:#0d0d1a; border-radius:10px; margin-bottom:8px; border:2px solid transparent; }
+    .web-result a { color:#6ab0f3; font-size:0.9rem; text-decoration:none; }
+    .web-result a:hover { text-decoration:underline; }
+    .web-result p { color:#aaa; font-size:0.78rem; margin-top:4px; }
+    .web-link { color:#888; font-size:0.72rem; word-break:break-all; }
+  </style>
+</head>
+<body>
+
+  <h1>⬇️ Social Downloader</h1>
+  <p class="subtitle">Download video dari mana saja</p>
+
+  <div class="tabs">
+    <button class="btn btn-primary" onclick="showTab('download')" id="tabDownload">⬇️ Download</button>
+    <button class="btn btn-secondary" onclick="showTab('search')" id="tabSearch">🔍 Cari Lagu</button>
+    <button class="btn btn-secondary" onclick="showTab('compress')" id="tabCompress">🗜️ Kompres</button>
+    <button class="btn btn-secondary" onclick="showTab('notes')" id="tabNotes">📝 Notes</button>
+    <button class="btn btn-secondary" onclick="showTab('websearch')" id="tabWebsearch">🌐 Search</button>
+  </div>
+
+  <div class="card" id="downloadCard">
+    <label>🔗 Paste Link Video Kamu:</label>
+    <input type="url" id="urlInput" placeholder="https://youtube.com/watch?v=..."/>
+
+    <label>📺 Pilih Kualitas:</label>
+    <select id="quality">
+      <option value="best">🏆 Terbaik (Otomatis)</option>
+      <option value="bestvideo[height<=2160]+bestaudio/best">🎬 4K Ultra HD</option>
+      <option value="bestvideo[height<=1440]+bestaudio/best">🖥️ 2K (1440p)</option>
+      <option value="bestvideo[height<=1080]+bestaudio/best">📺 1080p HD</option>
+      <option value="bestvideo[height<=720]+bestaudio/best">📱 720p (Rekomendasi)</option>
+      <option value="bestvideo[height<=480]+bestaudio/best">💾 480p (Hemat Memori)</option>
+      <option value="bestaudio">🎵 Audio Saja (MP3)</option>
+    </select>
+
+    <button class="btn btn-primary" onclick="cekVideo()">🔍 Cek Video Dulu</button>
+    <button class="btn btn-secondary" onclick="mulaiDownload()">⬇️ Download Sekarang</button>
+
+    <div id="status"></div>
+
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-info">
+        <span id="progressPercent">0%</span>
+        <span id="progressSpeed"></span>
+        <span id="progressEta"></span>
+      </div>
+    </div>
+
+    <div class="preview" id="preview">
+      <img id="thumb" src="" alt="thumbnail" onerror="this.src=''; this.style.display='none'"/>
+      <div class="preview-info">
+        <div id="platformBadge" class="platform-badge"></div>
+        <h3 id="videoTitle"></h3>
+        <p id="videoDuration"></p>
+      </div>
+    </div>
+
+    <div id="qualityInfo" style="display:none; margin-top:12px;">
+      <p style="color:#aaa; font-size:0.85rem; margin-bottom:8px;">📊 Grafik Kualitas:</p>
+      <div id="qualityChart"></div>
+      <p style="color:#aaa; font-size:0.85rem; margin:12px 0 8px;">📋 Format Tersedia:</p>
+      <div style="overflow-x:auto;">
+        <table id="formatTable" style="width:100%; border-collapse:collapse; font-size:0.75rem;">
+          <thead>
+            <tr style="background:#2a2a40; color:#aaa;">
+              <th style="padding:8px; text-align:left;">Resolusi</th>
+              <th style="padding:8px; text-align:left;">FPS</th>
+              <th style="padding:8px; text-align:left;">Bitrate</th>
+              <th style="padding:8px; text-align:left;">Ukuran</th>
+              <th style="padding:8px; text-align:left;">Codec</th>
+            </tr>
+          </thead>
+          <tbody id="formatBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="searchCard" style="display:none;">
+    <label>🎵 Ketik Judul Lagu:</label>
+    <input type="text" id="searchInput" placeholder="contoh: Weak, Bohemian Rhapsody..."/>
+    <button class="btn btn-primary" onclick="cariLagu()">🔍 Cari Sekarang</button>
+    <div id="searchResults" style="margin-top:16px;"></div>
+  </div>
+
+  <div class="card" id="compressCard" style="display:none;">
+    <label>📁 Path Video:</label>
+    <input type="text" id="compressInput" placeholder="/sdcard/DCIM/Camera/video.mp4"/>
+
+    <label>🎯 Preset:</label>
+    <select id="compressPreset">
+      <option value="tiktok">🎵 TikTok (1080p, 8Mbps, H.264)</option>
+      <option value="whatsapp">💬 WhatsApp (720p, 1.5Mbps)</option>
+      <option value="storage">💾 Hemat Storage (720p, H.265)</option>
+    </select>
+
+    <button class="btn btn-primary" onclick="mulaiKompres()">🗜️ Kompres Sekarang</button>
+
+    <div id="compressStatus" style="display:none; text-align:center; padding:10px; border-radius:8px; margin-top:8px;"></div>
+
+    <div class="progress-container" id="compressProgress">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="compressFill"></div>
+      </div>
+      <div class="progress-info">
+        <span id="compressPercent">0%</span>
+        <span id="compressInfo"></span>
+      </div>
+    </div>
+
+    <div id="compressResult" style="display:none; margin-top:12px; padding:12px; background:#1a3a1a; border-radius:10px; color:#4caf50; text-align:center;">
+      ✅ Selesai! Cek folder DCIM/Downloader
+    </div>
+  </div>
+
+  <div class="card" id="notesCard" style="display:none;">
+    <label>📝 Tambah Catatan/To-Do:</label>
+    <input type="text" id="noteInput" placeholder="contoh: Download lagu favorit nanti malam"/>
+    <button class="btn btn-primary" onclick="tambahNote()">➕ Tambah</button>
+    <div id="notesList" style="margin-top:16px;"></div>
+  </div>
+
+  <div class="card" id="websearchCard" style="display:none;">
+    <label>🌐 Cari di Web:</label>
+    <input type="text" id="websearchInput" placeholder="ketik apa saja..."/>
+    <button class="btn btn-primary" onclick="cariWeb()">🔍 Cari</button>
+    <div id="websearchResults" style="margin-top:16px;"></div>
+  </div>
+
+  <div class="card">
+    <label>✅ Platform yang Didukung:</label>
+    <div class="platform-list">
+      <div class="platform-item"><span>▶️</span>YouTube</div>
+      <div class="platform-item"><span>📸</span>Instagram</div>
+      <div class="platform-item"><span>🎵</span>TikTok</div>
+      <div class="platform-item"><span>🐦</span>Twitter/X</div>
+      <div class="platform-item"><span>📌</span>Pinterest</div>
+      <div class="platform-item"><span>🤖</span>+1000 lagi</div>
+    </div>
+  </div>
+
+  <script>
+    function tampilStatus(pesan, tipe) {
+      const el = document.getElementById('status');
+      el.textContent = pesan;
+      el.className = 'status-' + tipe;
+      el.style.display = 'block';
+    }
+
+    function formatDurasi(detik) {
+      const menit = Math.floor(detik / 60);
+      const sisa = detik % 60;
+      return `${menit} menit ${sisa} detik`;
+    }
+
+    function showTab(tab) {
+      const cards = {
+        download: document.getElementById('downloadCard'),
+        search: document.getElementById('searchCard'),
+        compress: document.getElementById('compressCard'),
+        notes: document.getElementById('notesCard'),
+        websearch: document.getElementById('websearchCard'),
+      };
+      const tabs = {
+        download: document.getElementById('tabDownload'),
+        search: document.getElementById('tabSearch'),
+        compress: document.getElementById('tabCompress'),
+        notes: document.getElementById('tabNotes'),
+        websearch: document.getElementById('tabWebsearch'),
+      };
+
+      Object.keys(cards).forEach(k => {
+        cards[k].style.display = 'none';
+        tabs[k].className = 'btn btn-secondary';
+      });
+
+      cards[tab].style.display = 'block';
+      tabs[tab].className = 'btn btn-primary';
+
+      if (tab === 'notes') loadNotes();
+    }
+
+    async function cekVideo() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) { tampilStatus('⚠️ Masukkan link dulu ya!', 'error'); return; }
+      tampilStatus('🔍 Sedang mengecek video...', 'loading');
+      try {
+        const res = await fetch('/info', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.error) { tampilStatus('❌ ' + data.error, 'error'); return; }
+
+        const thumb = document.getElementById('thumb');
+        thumb.src = data.thumbnail || '';
+        thumb.style.display = data.thumbnail ? 'block' : 'none';
+        document.getElementById('videoTitle').textContent = data.title;
+        document.getElementById('videoDuration').textContent = '⏱️ ' + formatDurasi(data.duration);
+        document.getElementById('platformBadge').textContent = '📡 ' + data.platform;
+        document.getElementById('preview').style.display = 'block';
+
+        if (data.formats && data.formats.length) {
+          const maxTbr = Math.max(...data.formats.map(f => f.tbr || 0));
+          const maxFps = Math.max(...data.formats.map(f => f.fps || 0));
+          const best = data.formats[0];
+
+          document.getElementById('qualityChart').innerHTML = `
+            <div class="chart-row">
+              <div class="chart-label">Resolusi</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${Math.min((best.tbr/maxTbr)*100,100)}%"></div></div>
+              <div class="chart-value">${best.resolution || '-'}</div>
+            </div>
+            <div class="chart-row">
+              <div class="chart-label">FPS</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${maxFps?(best.fps/maxFps)*100:0}%"></div></div>
+              <div class="chart-value">${best.fps || '-'} fps</div>
+            </div>
+            <div class="chart-row">
+              <div class="chart-label">Bitrate</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:100%"></div></div>
+              <div class="chart-value">${best.tbr || '-'} kbps</div>
+            </div>
+          `;
+
+          document.getElementById('formatBody').innerHTML = data.formats.map((f, i) => `
+            <tr style="background:${i%2===0?'#0d0d1a':'#1a1a2e'}; color:white;">
+              <td style="padding:8px;">${f.resolution || '-'}</td>
+              <td style="padding:8px;">${f.fps || '-'}</td>
+              <td style="padding:8px;">${f.tbr || '-'} kbps</td>
+              <td style="padding:8px;">${f.filesize ? f.filesize+'MB' : '-'}</td>
+              <td style="padding:8px; font-size:0.65rem;">${f.vcodec ? f.vcodec.split('.')[0] : '-'}</td>
+            </tr>
+          `).join('');
+
+          document.getElementById('qualityInfo').style.display = 'block';
+        }
+
+        tampilStatus('✅ Video ditemukan! Sekarang bisa didownload.', 'success');
+      } catch {
+        tampilStatus('❌ Gagal terhubung ke server', 'error');
+      }
+    }
+
+    async function mulaiDownload() {
+      const url = document.getElementById('urlInput').value.trim();
+      const quality = document.getElementById('quality').value;
+      if (!url) { tampilStatus('⚠️ Masukkan link dulu ya!', 'error'); return; }
+      tampilStatus('⏳ Memulai download...', 'loading');
+      document.getElementById('progressContainer').style.display = 'block';
+      try {
+        const res = await fetch('/download', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ url, quality })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const evtSource = new EventSource(`/progress/${data.session_id}`);
+          evtSource.onmessage = function(e) {
+            const p = JSON.parse(e.data);
+            const pct = parseFloat(p.percent) || 0;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressPercent').textContent = p.percent || '0%';
+            document.getElementById('progressSpeed').textContent = p.speed || '';
+            document.getElementById('progressEta').textContent = p.eta ? 'Sisa: ' + p.eta : '';
+            if (p.status === 'processing') tampilStatus('⚙️ Memproses file...', 'loading');
+            if (p.status === 'done') { tampilStatus('✅ Berhasil! Cek folder Downloads di HP kamu.', 'success'); evtSource.close(); }
+            if (p.status === 'error') { tampilStatus('❌ Gagal download!', 'error'); evtSource.close(); }
+          };
+        } else {
+          tampilStatus('❌ Gagal: ' + data.error, 'error');
+        }
+      } catch {
+        tampilStatus('❌ Gagal terhubung ke server', 'error');
+      }
+    }
+
+    async function cariLagu() {
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return;
+      const resultsDiv = document.getElementById('searchResults');
+      resultsDiv.innerHTML = '<p style="color:#aaa; text-align:center;">🔍 Mencari...</p>';
+      try {
+        const res = await fetch('/search', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        if (!data.results.length) {
+          resultsDiv.innerHTML = '<p style="color:#aaa; text-align:center;">Tidak ada hasil</p>';
+          return;
+        }
+        resultsDiv.innerHTML = data.results.map(r => `
+          <div class="result-item" onclick="pilihLagu('${r.url}', '${r.title.replace(/'/g, '')}')">
+            <img src="${r.thumbnail || ''}" onerror="this.style.display='none'"/>
+            <div class="result-info">
+              <h4>${r.title}</h4>
+              <p class="${r.platform === 'YouTube' ? 'platform-yt' : 'platform-sc'}">
+                ${r.platform === 'YouTube' ? '▶️' : '🎵'} ${r.platform} • ${r.channel}
+              </p>
+              <p>⏱️ ${Math.floor(r.duration/60)} menit ${r.duration%60} detik</p>
+            </div>
+          </div>
+        `).join('');
+      } catch {
+        resultsDiv.innerHTML = '<p style="color:#ff4757;">❌ Gagal mencari</p>';
+      }
+    }
+
+    function pilihLagu(url, title) {
+      showTab('download');
+      document.getElementById('urlInput').value = url;
+      document.getElementById('quality').value = 'bestaudio';
+      tampilStatus(`✅ Lagu dipilih: ${title}. Tap Download Sekarang!`, 'success');
+    }
+
+    async function mulaiKompres() {
+      const input_path = document.getElementById('compressInput').value.trim();
+      const preset = document.getElementById('compressPreset').value;
+
+      if (!input_path) {
+        document.getElementById('compressStatus').style.display = 'block';
+        document.getElementById('compressStatus').textContent = '⚠️ Masukkan path video dulu!';
+        document.getElementById('compressStatus').style.background = '#3a1a1a';
+        document.getElementById('compressStatus').style.color = '#ff4757';
+        return;
+      }
+
+      document.getElementById('compressStatus').style.display = 'block';
+      document.getElementById('compressStatus').textContent = '⏳ Memulai kompres...';
+      document.getElementById('compressStatus').style.background = '#2a2a40';
+      document.getElementById('compressStatus').style.color = '#aaa';
+      document.getElementById('compressProgress').style.display = 'block';
+      document.getElementById('compressResult').style.display = 'none';
+
+      try {
+        const res = await fetch('/compress', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ input_path, preset })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          const evtSource = new EventSource(`/progress/${data.session_id}`);
+          evtSource.onmessage = function(e) {
+            const p = JSON.parse(e.data);
+            const pct = parseFloat(p.percent) || 0;
+            document.getElementById('compressFill').style.width = pct + '%';
+            document.getElementById('compressPercent').textContent = p.percent || '0%';
+
+            if (p.status === 'compressing') {
+              document.getElementById('compressStatus').textContent = '⚙️ Sedang mengkompres...';
+            }
+            if (p.status === 'done') {
+              document.getElementById('compressStatus').style.display = 'none';
+              document.getElementById('compressResult').style.display = 'block';
+              evtSource.close();
+            }
+            if (p.status === 'error') {
+              document.getElementById('compressStatus').textContent = '❌ Gagal kompres!';
+              document.getElementById('compressStatus').style.background = '#3a1a1a';
+              document.getElementById('compressStatus').style.color = '#ff4757';
+              evtSource.close();
+            }
+          };
+        }
+      } catch {
+        document.getElementById('compressStatus').textContent = '❌ Gagal terhubung ke server';
+      }
+    }
+
+    async function loadNotes() {
+      try {
+        const res = await fetch('/notes');
+        const data = await res.json();
+        renderNotes(data.notes);
+      } catch {}
+    }
+
+    function renderNotes(notes) {
+      const listDiv = document.getElementById('notesList');
+      if (!notes.length) {
+        listDiv.innerHTML = '<p style="color:#888; text-align:center;">Belum ada catatan</p>';
+        return;
+      }
+      listDiv.innerHTML = notes.map(n => `
+        <div class="note-item">
+          <div class="note-checkbox ${n.done ? 'checked' : ''}" onclick="toggleNote('${n.id}')"></div>
+          <div class="note-text ${n.done ? 'done' : ''}">${n.text}</div>
+          <div class="note-delete" onclick="hapusNote('${n.id}')">🗑️</div>
+        </div>
+      `).join('');
+    }
+
+    async function tambahNote() {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const res = await fetch('/notes', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      renderNotes(data.notes);
+      input.value = '';
+    }
+
+    async function toggleNote(id) {
+      const res = await fetch(`/notes/${id}`, { method: 'PUT' });
+      const data = await res.json();
+      renderNotes(data.notes);
+    }
+
+    async function hapusNote(id) {
+      const res = await fetch(`/notes/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      renderNotes(data.notes);
+    }
+
+    async function cariWeb() {
+      const query = document.getElementById('websearchInput').value.trim();
+      if (!query) return;
+      const resultsDiv = document.getElementById('websearchResults');
+      resultsDiv.innerHTML = '<p style="color:#aaa; text-align:center;">🔍 Mencari...</p>';
+      try {
+        const res = await fetch('/websearch', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        if (data.error || !data.results.length) {
+          resultsDiv.innerHTML = '<p style="color:#aaa; text-align:center;">Tidak ada hasil</p>';
+          return;
+        }
+        resultsDiv.innerHTML = data.results.map(r => `
+          <div class="web-result">
+            <a href="${r.link}" target="_blank">${r.title}</a>
+            <p>${r.snippet}</p>
+            <p class="web-link">${r.link}</p>
+          </div>
+        `).join('');
+      } catch {
+        resultsDiv.innerHTML = '<p style="color:#ff4757;">❌ Gagal mencari</p>';
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  </script>
+</body>
+</html>

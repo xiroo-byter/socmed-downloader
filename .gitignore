@@ -1,0 +1,6 @@
+hasil/
+*.mp4
+*.mp3
+*.webm
+pycache/
+*.pyc
