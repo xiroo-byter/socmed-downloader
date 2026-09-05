@@ -338,16 +338,17 @@ def download():
                 {'key': 'FFmpegMetadata', 'add_metadata': True}
             ],
         }
-    else:
+    elif is_tiktok:
         ydl_opts = {
-            'format':f'{quality}/bestvideo+bestaudio/best', 
-            'cookiefile': 'cookies.txt',
+            'format': 'bestvideo+bestaudio/best',
+            'cookiefile': 'cookies_tiktok.txt',
             'outtmpl': 'C:/downloader/hasil/%(title)s.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
             'merge_output_format': 'mp4',
+            'impersonate': 'chrome',
             'postprocessors': [{'key': 'FFmpegMetadata', 'add_metadata': True}],
-        }
+    }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
