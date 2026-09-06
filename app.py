@@ -6,7 +6,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
-os.makedirs('C:/downloader/hasil', exist_ok=True)
+os.makedirs('hasil', exist_ok=True)
 
 progress_data = {}
 
@@ -296,7 +296,7 @@ def download():
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
             'cookiefile': get_cookies('pinterest'),
-            'outtmpl': 'C:/downloader/hasil/%(title)s.%(ext)s',
+            'outtmpl': 'hasil/%(title)s.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
             'merge_output_format': 'mp4',
@@ -306,7 +306,7 @@ def download():
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
             'cookiefile': get_cookies('tiktok'),
-            'outtmpl': 'C:/downloader/hasil/%(title)s.%(ext)s',
+            'outtmpl': 'hasil/%(title)s.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
             'merge_output_format': 'mp4',
@@ -316,7 +316,7 @@ def download():
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
             'cookiefile': get_cookies('instagram'),
-            'outtmpl': 'C:/downloader/hasil/%(title)s.%(ext)s',
+            'outtmpl': 'hasil/%(title)s.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
             'merge_output_format': 'mp4',
@@ -326,7 +326,7 @@ def download():
         ydl_opts = {
             'format': 'bestaudio/best',
             'cookiefile': 'cookies.txt',
-            'outtmpl': 'C:/downloader/hasil/%(title)s.%(ext)s',
+            'outtmpl': 'hasil/%(title)s.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
             'postprocessors': [
@@ -342,7 +342,7 @@ def download():
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
             'cookiefile': 'cookies_tiktok.txt',
-            'outtmpl': 'C:/downloader/hasil/%(title)s.%(ext)s',
+            'outtmpl': 'hasil/%(title)s.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
             'merge_output_format': 'mp4',
@@ -374,4 +374,5 @@ def download():
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    port=int(os.environ.get('PORT',5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
