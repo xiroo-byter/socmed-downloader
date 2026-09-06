@@ -42,10 +42,11 @@ jobs:
     - name: Build APK
       run: |
         cd app
-        cordova build android --release
+        cordova build android
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: socmed-downloader-apk
-        path: app/platforms/android/app/build/outputs/apk/release/*.apk
+        path: |
+          app/platforms/android/app/build/outputs/apk/release/*.apk
