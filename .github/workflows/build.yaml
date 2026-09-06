@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -21,7 +21,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '24'
     
     - name: Install Cordova
       run: npm install -g cordova
@@ -44,9 +44,11 @@ jobs:
         cd app
         cordova build android
     
+    - name: Find APK
+      run: find app/platforms/android -name "*.apk"
+    
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: socmed-downloader-apk
-        path: |
-          app/platforms/android/app/build/outputs/apk/release/*.apk
+        path: app/platforms/android/**/*.apk
