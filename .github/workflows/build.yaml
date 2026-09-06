@@ -1,4 +1,4 @@
-name: Artifacts Comparison
+name: Build apk
 
 on:
   workflow_dispatch:
